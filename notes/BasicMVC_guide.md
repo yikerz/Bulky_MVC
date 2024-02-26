@@ -246,3 +246,88 @@ if (obj.Name == "Invalid") {
 
 1. Create partial view `Shared/_Notification.cshtml` and cut the lines above from `Index.cshtml` to it
 2. In `Index.cshtml`, at the cut area, add `<partial name="_Notification"/>`
+
+##### AJAX On Category List Page
+
+1. Create GET Action `CategoryController.ListAndCreate()`
+2. Create View for `ListAndCreate`, copy `Index.cshtml` to `ListAndCreate.cshtml`
+3. In `_Layout.cshtml`, add another `li` to navbar to navigate to `ListAndCreate`
+4. Remove the `Create New Category` button in `ListAndCreate.cshtml`
+5. Create inputs for "Category Name" and "Display Order", and "Create Category" button (can copy from `Create.cshtml` but modify)
+6. Create new folder `Controllers/api` and new controller `CategoryController`
+   - Create constructor with input `ApplicationDbContext`
+   - Create `HttpPost` action `Add(Category dto)` with `Route("add")`
+   - Inside action, instantiate new `Category` object using dto fields, add to database and save
+   ```cs
+   public IActionResult Add(Category dto)
+    {
+        var category = new Category
+        {
+            Name = dto.Name,
+            DisplayOrder = dto.DisplayOrder
+        };
+        _db.Categories.Add(category);
+        _db.SaveChanges();
+        return Ok();
+    }
+   ```
+   - Return `Ok`
+7. Add JS section to `ListAndCreate.cshtml`
+   - Find create button and add `EventListener` for click event to trigger `createCategory`
+   - Create async function `createCategory` using `fetch`
+
+```js
+@section Scripts {
+    <script>
+        var createBtn = document.getElementById("createBtn");
+        createBtn.addEventListener("click", createCategory);
+
+        async function createCategory() {
+          await fetch('/api/Category/add', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json',
+                    'Accept': '*/*'
+                },
+                body: JSON.stringify({
+                    Name: document.getElementById("nameInput").value,
+                    DisplayOrder: document.getElementById("orderInput").value,
+                })
+            });
+        }
+    </script>
+}
+```
+
+8. In `Controllers/api/CategoryController`, add new `HttpGet` action `Get()`
+   - Find all `Category`
+   - Return `Ok`
+9. In `createCategory()` in `ListAndCreate.cshtml`, add another GET fetch to get all category and update the table
+
+```js
+await fetch("/api/Category/get", {
+  method: "GET",
+  headers: {
+    "Content-type": "application/json",
+    Accept: "*/*",
+  },
+})
+  .then((data) => data.json())
+  .then((result) => {
+    tableElement.querySelector("tbody").innerHTML = ``;
+    result.forEach((category) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+                        <td>${category.name}</td>
+                        <td>${category.displayOrder}</td>
+                        <td>
+                            <div class="w-75 btn-group" role="group">
+                                <a asp-action="Edit" asp-controller="Category" asp-route-id="${category.id}" class="btn btn-primary">Edit</a>
+                                <a asp-action="Delete" asp-controller="Category" asp-route-id="${category.id}" class="btn btn-danger">Delete</a>
+                            </div>
+                        </td>
+                    `;
+      tableElement.querySelector("tbody").appendChild(row);
+    });
+  });
+```

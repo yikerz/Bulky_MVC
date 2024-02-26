@@ -1,0 +1,105 @@
+﻿@model List<BulkyWeb.Models.Category>
+@{
+    ViewData["Title"] = "ListAndCreate";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@if (TempData["success"] != null)
+{
+    <p>@TempData["success"]</p>
+}
+<div class="container">
+    <div class="row pt-4 pb-3">
+        <div class="col-6">
+            <h2 class="text-primary">Category List</h2>
+        </div>
+    </div>
+</div>
+<table id="categoryTable" class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Category Name</th>
+            <th>Display Order</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var category in Model.OrderBy(m => m.DisplayOrder))
+        {
+            <tr>
+                <td>@category.Name</td>
+                <td>@category.DisplayOrder</td>
+                <td>
+                    <div class="w-75 btn-group" role="group">
+                        <a asp-action="Edit" asp-controller="Category" asp-route-id="@category.Id" class="btn btn-primary">Edit</a>
+                        <a asp-action="Delete" asp-controller="Category" asp-route-id="@category.Id" class="btn btn-danger">Delete</a>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+<div class="border p-3 mt-4">
+    <div class="row pb-2">
+        <h2 class="text-primary">Create Category</h2>
+    </div>
+    <div class="mb-3">
+        <label for="nameInput">Category Name</label>
+        <input id="nameInput" type="text" class="form-control" />
+    </div>
+    <div class="mb-3">
+        <label for="orderInput">Display Order</label>
+        <input id="orderInput" type="text" class="form-control" />
+    </div>
+    <div class="row m-3">
+        <div class="col-6">
+            <button id="createBtn" class="btn btn-primary form-control">Create</button>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        var createBtn = document.getElementById("createBtn");
+        var tableElement = document.getElementById("categoryTable");
+        createBtn.addEventListener("click", createCategory);
+
+        async function createCategory() {
+        await fetch('/api/Category/add', {
+            method: 'POST',
+            headers: {
+                'Content-type': 'application/json',
+                'Accept': '*/*'
+            },
+            body: JSON.stringify({
+                Name: document.getElementById("nameInput").value,
+                DisplayOrder: document.getElementById("orderInput").value,
+            })
+        });
+        await fetch('/api/Category/get', {
+            method: 'GET',
+            headers: {
+                'Content-type': 'application/json',
+                'Accept': '*/*'
+            }
+        }).then(data => data.json())
+            .then(result => {
+                tableElement.querySelector("tbody").innerHTML = ``;
+                result.forEach(category => {
+                    const row = document.createElement("tr");
+                    row.innerHTML = `
+                        <td>${category.name}</td>
+                        <td>${category.displayOrder}</td>
+                        <td>
+                            <div class="w-75 btn-group" role="group">
+                                <a asp-action="Edit" asp-controller="Category" asp-route-id="${category.id}" class="btn btn-primary">Edit</a>
+                                <a asp-action="Delete" asp-controller="Category" asp-route-id="${category.id}" class="btn btn-danger">Delete</a>
+                            </div>
+                        </td>
+                    `
+                    tableElement.querySelector("tbody").appendChild(row);
+                })
+            });
+        }
+
+    </script>
+}

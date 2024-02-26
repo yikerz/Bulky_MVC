@@ -88,5 +88,10 @@ namespace BulkyWeb.Controllers
             TempData["success"] = "Successfully delete category!";
             return RedirectToAction("Index", "Category");
         }
+        public IActionResult ListAndCreate()
+        {
+            var categories = _db.Categories.ToList();
+            return View(categories);
+        }
     }
 }
