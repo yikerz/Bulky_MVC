@@ -3,6 +3,11 @@
 1. Create new project `ASP.NET Core Web App (MVC)` with project name `BulkyWeb` and solution name `Bulky` (use `Individual User Accounts` for authentication)
 2. In `appsettings.json`, edit `Server` and `Database=Bulky` in `ConnectionStrings`
 
+**Only For Scaffolding Database**
+
+1. Install NuGet package: `Microsoft.EntityFramework.SqlServer`
+2. In PM console, run `Scaffold-DbContext "Server=<ServerName>;Database=<DbName>;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Models`
+
 ### Category CRUD Operations
 
 ##### Create First Model (Category Model)
